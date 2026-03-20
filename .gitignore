@@ -12,6 +12,22 @@ dist
 dist-ssr
 *.local
 
+# Environment files — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Development artifacts
+*.png
+*.pdf
+IMPLEMENTATION_PLAN.md
+
+# Claude Code
+.claude/
+
+# Playwright screenshots
+*.playwright-mcp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
