@@ -18,9 +18,12 @@ dist-ssr
 !.env.example
 
 # Development artifacts
-*.png
 *.pdf
 IMPLEMENTATION_PLAN.md
+
+# Root-level screenshots (Playwright test artifacts)
+/phase*.png
+/redesign*.png
 
 # Claude Code
 .claude/

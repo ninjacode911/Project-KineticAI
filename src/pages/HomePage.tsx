@@ -42,7 +42,7 @@ export function HomePage() {
               <Settings className="h-4 w-4" />
             </button>
             <a
-              href="https://github.com/ninjacode911/kineticai"
+              href="https://github.com/ninjacode911/Project-KineticAI"
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
