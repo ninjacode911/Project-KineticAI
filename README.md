@@ -2,14 +2,17 @@
 
 # KineticAI
 
-**Real-time pose estimation and AI form coaching — running entirely in your browser**
+**Real-Time AI Pose Coaching — Entirely In Your Browser**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-projectkineticai.vercel.app-8b5cf6?style=for-the-badge&logo=vercel)](https://projectkineticai.vercel.app/)
-[![Tests](https://img.shields.io/badge/Tests-26_passing-22c55e?style=for-the-badge&logo=vitest)](tests/)
-[![License](https://img.shields.io/badge/License-Source_Available-f59e0b?style=for-the-badge)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178c6?style=for-the-badge&logo=typescript)](src/)
+*Track your form. Count your reps. Get coached by AI.*
 
-Zero backend. Zero data uploads. Zero subscriptions.
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=white)](https://react.dev/)
+[![License](https://img.shields.io/badge/License-Source%20Available-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/Tests-26%20passing-brightgreen)](tests/)
+[![Vercel](https://img.shields.io/badge/%E2%96%B2%20Vercel-Live%20Demo-000000?style=flat&logo=vercel&logoColor=white)](https://projectkineticai.vercel.app/)
+
+[**Live Demo →**](https://projectkineticai.vercel.app/)
 
 </div>
 
@@ -17,71 +20,88 @@ Zero backend. Zero data uploads. Zero subscriptions.
 
 ## Overview
 
-KineticAI tracks 33 body keypoints in real-time using Google MediaPipe directly in your browser. It counts reps, scores form quality across 5 components, detects fatigue, and delivers AI-powered coaching feedback via the Gemini 2.0 Flash API — all without sending video data to any server.
+KineticAI is a production-grade, browser-native AI fitness coaching platform built entirely without a backend. It uses Google MediaPipe to track 33 body keypoints at 30+ FPS directly in the browser via WebAssembly, then runs a full analysis pipeline — rep counting, 5-component form scoring, fatigue detection, and AI coaching — entirely client-side.
 
-Supports 10 exercises including squats, push-ups, Romanian deadlifts, overhead press, bicep curls, glute bridges, and yoga poses.
+**What makes this different from typical fitness apps:**
+- **Zero backend** — MediaPipe runs as WASM in-browser; no video or pose data ever leaves the device.
+- **5-component form scoring** — depth, alignment, symmetry, control, and range of motion scored independently and weighted into a single grade.
+- **Fatigue detection** — monitors depth fade, symmetry collapse, and speed collapse across reps to warn before injury.
+- **AI coaching with fallback** — Gemini 2.0 Flash API generates personalized cues; rule-based micro-cues fire instantly when offline.
+- **Voice coaching** — Web Speech API reads coaching feedback aloud so users can stay eyes-forward.
 
 ---
 
-## Pipeline
+## Architecture
 
 ```
 Camera Feed (30+ FPS)
-        |
-        v
-+----------------------+
-|  MediaPipe Vision    |  33 keypoints + 3D coordinates
-|  (WASM in-browser)   |
-+----------+-----------+
+      |
+      v
++-------------------------+
+|  MediaPipe Tasks Vision  |  33 keypoints + 3D coordinates
+|  (WASM, fully in-browser)|
++----------+--------------+
            |
     +------v----------------------------------------------+
     |                  Analysis Layer                      |
-    |  Joint Angle Calculator  ->  Rep State Machine       |
-    |  Form Scorer (5 components)  ->  Fatigue Meter       |
-    +-------------------------------+---------------------+
-                                    |
-           +------------------------v-----------------------+
-           |              Coaching Engine                    |
-           |  Gemini 2.0 Flash API                          |
-           |  + Rule-Based Fallback Cues                    |
-           |  + Web Speech API (TTS voice feedback)         |
-           +------------------------+-----------------------+
-                                    |
-                                    v
-                       Canvas Overlay + Session Dashboard
+    |                                                      |
+    |  Joint Angle Calculator                              |
+    |      |                                               |
+    |      v                                               |
+    |  Rep State Machine     ->   Rep Count + Phase        |
+    |      |                                               |
+    |      v                                               |
+    |  Form Scorer (5 components)                          |
+    |      depth | alignment | symmetry | control | ROM    |
+    |      |                                               |
+    |      v                                               |
+    |  Fatigue Detector      ->   depth/symmetry/speed     |
+    +------+-----------------------------------------------+
+           |
+    +------v----------------------------------------------+
+    |              Coaching Engine                         |
+    |  Gemini 2.0 Flash API  ->  Personalized AI cues     |
+    |  Rule-Based Fallback   ->  Instant offline cues     |
+    |  Web Speech API        ->  TTS voice coaching       |
+    +------+-----------------------------------------------+
+           |
+           v
+  Canvas Overlay + Session Dashboard + PDF Report
 ```
 
 ---
 
 ## Features
 
-| Feature | Details |
-|---------|---------|
+| Feature | Detail |
+|---------|--------|
 | **Real-time tracking** | 33 keypoints at 30+ FPS using MediaPipe Tasks Vision (WASM) |
 | **Rep counting** | Finite state machine with configurable angle thresholds per exercise |
-| **Form scoring** | 5-component score: depth 30%, alignment 25%, symmetry 20%, control 15%, ROM 10% |
-| **Fatigue detection** | Monitors depth fade, symmetry collapse, and speed collapse |
-| **AI coaching** | Gemini 2.0 Flash API with rule-based micro-cues as fallback |
+| **Form scoring** | 5-component: depth 30%, alignment 25%, symmetry 20%, control 15%, ROM 10% |
+| **Fatigue detection** | Monitors depth fade, symmetry collapse, and speed collapse across reps |
+| **AI coaching** | Gemini 2.0 Flash API with rule-based micro-cues as instant fallback |
 | **Voice coaching** | Web Speech API TTS reads coaching feedback aloud |
-| **PDF reports** | Client-side session report generation with pdfmake |
+| **Session history** | Zustand state persisted in localStorage across sessions |
+| **PDF reports** | Client-side session report generation via pdfmake |
 | **10 exercises** | Squat, push-up, RDL, OHP, bicep curl, shoulder rotation, glute bridge, knee extension, Warrior II, tree pose |
-| **Privacy-first** | Zero backend, zero data uploads — all ML runs in-browser |
+| **Privacy-first** | Zero backend, zero data uploads — all ML inference runs in-browser |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | React 19, TypeScript (strict), Vite 8 |
-| Pose Estimation | MediaPipe Tasks Vision (WASM) |
-| Styling | Tailwind CSS v4, shadcn/ui, Framer Motion |
-| State Management | Zustand (persisted localStorage) |
-| AI Coaching | Gemini 2.0 Flash API |
-| PDF Generation | pdfmake (client-side) |
-| Testing | Vitest (26 unit tests) |
-| CI/CD | GitHub Actions (tsc + lint + test + build) |
-| Deployment | Vercel |
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Framework** | React 19, TypeScript (strict), Vite 8 | UI components and build toolchain |
+| **Pose Estimation** | MediaPipe Tasks Vision (WASM) | 33-keypoint body tracking at 30+ FPS |
+| **Styling** | Tailwind CSS v4, shadcn/ui, Framer Motion | Design system and animations |
+| **State** | Zustand (persisted localStorage) | Session and settings state management |
+| **AI Coaching** | Gemini 2.0 Flash API | Personalized coaching cue generation |
+| **Voice** | Web Speech API | TTS readback of coaching feedback |
+| **PDF** | pdfmake | Client-side session report generation |
+| **Testing** | Vitest (26 unit tests) | Analysis logic and form scoring tests |
+| **CI/CD** | GitHub Actions | tsc + lint + test + build on every push |
+| **Deployment** | Vercel | Zero-config frontend hosting |
 
 ---
 
@@ -91,15 +111,25 @@ Camera Feed (30+ FPS)
 src/
 ├── pages/              # Route pages (Home, Session, Review, Settings)
 ├── components/         # React UI components
-├── hooks/              # Custom hooks (camera, pose detection, session)
+├── hooks/              # Custom hooks (useCamera, usePoseDetection, useSession)
 ├── lib/
-│   ├── analysis/       # Joint angles, rep counter, form scorer, fatigue
-│   ├── coaching/       # Gemini API + rule-based cues
-│   ├── pose/           # MediaPipe loader, keypoint mapper
-│   ├── rendering/      # Canvas skeleton renderer
-│   └── report/         # PDF generation
+│   ├── analysis/
+│   │   ├── joint_angles.ts      # 33-keypoint angle computation
+│   │   ├── rep_counter.ts       # FSM-based rep counting
+│   │   ├── form_scorer.ts       # 5-component form scoring
+│   │   └── fatigue_detector.ts  # Depth/symmetry/speed fatigue
+│   ├── coaching/
+│   │   ├── gemini_coach.ts      # Gemini 2.0 Flash API client
+│   │   └── rule_cues.ts         # Rule-based offline fallback
+│   ├── pose/
+│   │   ├── mediapipe_loader.ts  # WASM model loading
+│   │   └── keypoint_mapper.ts   # 33 landmark name mapping
+│   ├── rendering/
+│   │   └── canvas_renderer.ts   # Skeleton overlay on canvas
+│   └── report/
+│       └── pdf_generator.ts     # pdfmake session report
 ├── data/exercises/     # 10 exercise configuration files
-├── stores/             # Zustand state management
+├── stores/             # Zustand state (session, settings)
 └── types/              # TypeScript interfaces
 ```
 
@@ -107,28 +137,61 @@ src/
 
 ## Quick Start
 
+### Prerequisites
+
+- Node.js 18+
+- A Gemini API key ([free at aistudio.google.com](https://aistudio.google.com))
+
+### 1. Clone and install
+
 ```bash
 git clone https://github.com/ninjacode911/Project-KineticAI.git
 cd Project-KineticAI
 npm install
 ```
 
-Create a `.env.local` file:
-
-```
-VITE_GEMINI_API_KEY=your_gemini_api_key
-```
+### 2. Configure secrets
 
 ```bash
-npm run dev       # http://localhost:5173
-npm run test      # run 26 unit tests
-npm run build     # production build
+cp .env.example .env.local
+# Edit .env.local and add:
+# VITE_GEMINI_API_KEY=your_gemini_api_key
 ```
 
-> **Privacy note:** Your webcam feed never leaves the browser. MediaPipe runs entirely as a WASM module. AI coaching requests send only JSON (joint angles, rep counts) — no images or video.
+### 3. Run
+
+```bash
+npm run dev
+# Open http://localhost:5173
+```
+
+### 4. Use it
+
+1. Allow camera access when prompted
+2. Select an exercise from the sidebar
+3. Step into frame — pose tracking starts automatically
+4. Perform reps — the dashboard tracks count, form score, and fatigue in real time
+5. Ask for AI coaching feedback at any time via the coaching panel
+
+---
+
+## Running Tests
+
+```bash
+npm run test
+# Expected: 26 passed
+```
+
+Tests cover joint angle computation, rep state machine transitions, form scoring weights, and fatigue detection thresholds.
 
 ---
 
 ## License
 
-Source Available — All Rights Reserved. See [LICENSE](LICENSE) for details.
+**Source Available — All Rights Reserved.** See [LICENSE](LICENSE) for full terms.
+
+The source code is publicly visible for viewing and educational purposes. Any use in personal, commercial, or academic projects requires explicit written permission from the author.
+
+To request permission: navnitamrutharaj1234@gmail.com
+
+**Author:** Navnit Amrutharaj
